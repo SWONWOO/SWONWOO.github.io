@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>지역별 수익성 저하 원인 분석 | 성원우</title>
+<meta name="description" content="Superstore 매출 데이터에서 Central·South 지역의 낮은 이익률 원인을 SQL과 Pandas로 분석한 프로젝트입니다.">
+<link rel="stylesheet" href="../../assets/style.css">
+</head>
+<body>
+<header class="dhead"><div class="wrap">
+  <a class="back" href="../../index.html#project">← 프로젝트 목록</a>
+  <h1>🛒 지역별 수익성 저하 원인 분석</h1>
+  <div class="tags"><span class="tag">SQL</span><span class="tag">Python</span><span class="tag">Pandas</span><span class="tag">상관분석</span></div>
+  <div class="kpis">
+    <div class="kpi"><b>5.13%</b><span>Central 이익률</span></div>
+    <div class="kpi"><b>7.20%</b><span>South 이익률</span></div>
+    <div class="kpi"><b>30%</b><span>이익률이 음수로 바뀌는 할인율</span></div>
+    <div class="kpi"><b>-0.96</b><span>할인율 구간별 상관계수</span></div>
+  </div>
+</div></header>
+
+<main class="wrap page">
+
+  <div class="callout">
+    <b>📝 프로젝트 요약</b>
+    <ul>
+      <li><strong>목표</strong>: 마케팅팀의 "지역별 실적 편차" 요청에 대해 실적이 낮은 지역을 찾고, 원인을 데이터로 설명한다.</li>
+      <li><strong>결과</strong>: Central(5.13%)과 South(7.20%)의 이익률이 East(15.60%), West(17.51%)보다 낮았고, 손실은 일부 Furniture 서브카테고리에 몰려 있었다. 할인율이 높을수록 이익률이 낮아지는 경향도 확인했다.</li>
+      <li><strong>역할</strong>(1인 프로젝트): 요구사항 정의, SQL 데이터 추출, Pandas 집계, Matplotlib 시각화, 상관분석</li>
+      <li><a href="https://github.com/SWONWOO/superstore-profitability-analysis" target="_blank" rel="noopener">GitHub에서 코드와 분석 과정 보기 ↗</a></li>
+    </ul>
+  </div>
+
+  <h2>1. 문제 정의</h2>
+  <p>요청은 "지역별 매출 편차가 있는데 어떤 지역이 왜 문제인지 봐 달라"였습니다. 기준이 모호해서 바로 분석하지 않고, 아래처럼 요구사항부터 확정했습니다.</p>
+  <table>
+    <tr><th>항목</th><th>확정한 기준</th></tr>
+    <tr><td>분석 기간</td><td>데이터의 마지막 1년 (2017-01-01 ~ 2017-12-30)</td></tr>
+    <tr><td>주 지표</td><td>매출(Sales)</td></tr>
+    <tr><td>보조 지표</td><td>이익(Profit), 이익률 = 이익 ÷ 매출 × 100</td></tr>
+    <tr><td>비교 방식</td><td>지역(Region) 간 상대 비교</td></tr>
+  </table>
+
+  <h2>2. 데이터 수집 및 분석</h2>
+  <ul>
+    <li><strong>데이터</strong>: <a href="https://www.kaggle.com/datasets/vivek468/superstore-dataset-final" target="_blank" rel="noopener">Kaggle · Sample Superstore</a> (원본 9,994건, 2017년 3,312건)</li>
+    <li><strong>방법</strong>: SQLite에서 SQL로 필요한 컬럼과 기간만 추출한 뒤, Pandas로 지역 → 카테고리 → 서브카테고리 순서로 범위를 좁혀 원인을 추적</li>
+    <li><strong>전처리</strong>: Order Date에 형식이 섞여 있어(<code>01-01-2017</code>, <code>9/30/2017</code>) datetime으로 변환한 뒤 DB 테이블을 다시 저장해야 SQL 날짜 조건이 정확히 동작했다.</li>
+  </ul>
+
+  <h2>3. 분석 결과</h2>
+
+  <h3>3-1. 지역별 이익률</h3>
+  <table>
+    <tr><th>지역</th><th class="n">매출</th><th class="n">이익</th><th class="n">이익률</th></tr>
+    <tr><td>Central</td><td class="n">147,098</td><td class="n">7,551</td><td class="n neg">5.13%</td></tr>
+    <tr><td>South</td><td class="n">122,906</td><td class="n">8,849</td><td class="n neg">7.20%</td></tr>
+    <tr><td>East</td><td class="n">213,083</td><td class="n">33,231</td><td class="n">15.60%</td></tr>
+    <tr><td>West</td><td class="n">250,128</td><td class="n">43,809</td><td class="n">17.51%</td></tr>
+  </table>
+  <figure>
+    <img src="https://raw.githubusercontent.com/SWONWOO/superstore-profitability-analysis/main/images/region_profit_margin.png" alt="지역별 이익률 막대그래프">
+    <figcaption>Central과 South를 추가 분석 대상으로 선정</figcaption>
+  </figure>
+
+  <h3>3-2. Central · South의 카테고리별 이익률</h3>
+  <table>
+    <tr><th>지역</th><th>카테고리</th><th class="n">매출</th><th class="n">이익률</th></tr>
+    <tr><td>Central</td><td>Furniture</td><td class="n">44,522</td><td class="n neg">-2.88%</td></tr>
+    <tr><td>Central</td><td>Office Supplies</td><td class="n">58,771</td><td class="n neg">0.15%</td></tr>
+    <tr><td>Central</td><td>Technology</td><td class="n">43,805</td><td class="n">19.97%</td></tr>
+    <tr><td>South</td><td>Furniture</td><td class="n">38,305</td><td class="n neg">-1.53%</td></tr>
+    <tr><td>South</td><td>Office Supplies</td><td class="n">39,773</td><td class="n">14.53%</td></tr>
+    <tr><td>South</td><td>Technology</td><td class="n">44,828</td><td class="n">8.15%</td></tr>
+  </table>
+  <p>두 지역은 원인이 달랐습니다. South는 Furniture 한 카테고리가 문제였고, Central은 Furniture와 Office Supplies가 함께 부진했습니다.</p>
+
+  <h3>3-3. 서브카테고리별 이익률과 평균 할인율</h3>
+  <table>
+    <tr><th>지역 · 서브카테고리</th><th class="n">이익률</th><th class="n">평균 할인율</th></tr>
+    <tr><td>Central · Furnishings</td><td class="n neg">-26.01%</td><td class="n">38.4%</td></tr>
+    <tr><td>South · Tables</td><td class="n neg">-25.51%</td><td class="n">27.1%</td></tr>
+    <tr><td>Central · Tables</td><td class="n neg">-20.42%</td><td class="n">29.2%</td></tr>
+    <tr><td>Central · Binders</td><td class="n neg">-18.75%</td><td class="n">48.5%</td></tr>
+    <tr><td>Central · Bookcases</td><td class="n neg">-9.06%</td><td class="n">25.8%</td></tr>
+    <tr><td>Central · Appliances</td><td class="n neg">-3.51%</td><td class="n">47.2%</td></tr>
+    <tr><td>Central · Supplies</td><td class="n">2.67%</td><td class="n">12.9%</td></tr>
+    <tr><td>Central · Storage</td><td class="n">2.99%</td><td class="n">12.3%</td></tr>
+  </table>
+  <p>Tables는 Central과 South 양쪽에서 큰 손실이 났습니다.</p>
+
+  <h3>3-4. 할인율과 이익률의 관계</h3>
+  <figure>
+    <img src="https://raw.githubusercontent.com/SWONWOO/superstore-profitability-analysis/main/images/discount_profit_margin.png" alt="할인율에 따른 이익률 변화 그래프">
+    <figcaption>할인율 30%부터 이익률이 마이너스로 전환</figcaption>
+  </figure>
+  <ul>
+    <li>전체 데이터를 할인율 12개 구간으로 집계했을 때 상관계수는 <strong>-0.96</strong></li>
+    <li>위 8개 서브카테고리 그룹만 놓고 보면 <strong>-0.49</strong></li>
+  </ul>
+  <p class="note">-0.96은 개별 주문 3,312건의 상관계수가 아니라 할인율 구간별 집계값 사이의 관계입니다. 집계 단위에 따라 값이 달라지고, 상관관계만으로 인과관계를 확정할 수는 없습니다. Binders와 Appliances처럼 할인율이 높아도 손실이 비교적 작은 예외도 있어, 할인율만으로 모든 차이를 설명하지는 못합니다.</p>
+
+  <h2>4. 제안 (Action Plan)</h2>
+  <ul>
+    <li><strong>할인율 상한 검토</strong>: 할인율 30% 이상에서 이익률이 음수가 되므로 상한 도입을 검토한다. 다만 일괄 적용 전에 상품군별 손익 시뮬레이션으로 효과를 검증한다.</li>
+    <li><strong>Tables 우선 점검</strong>: 두 지역에서 공통으로 손실이 큰 서브카테고리라 할인 정책 조정의 첫 대상으로 삼는다.</li>
+    <li><strong>매입원가 점검</strong>: 낮은 할인율에서도 이익이 거의 없는 Supplies, Storage는 가격 정책과 매입가를 함께 확인한다.</li>
+  </ul>
+
+  <h2>5. 회고 (KPT)</h2>
+  <div class="kpt">
+    <div>
+      <h3>Keep</h3>
+      <p>분석 전에 기간과 지표를 먼저 확정했고, 가설을 상관계수로 검증하면서 한계까지 함께 기록했습니다.</p>
+    </div>
+    <div>
+      <h3>Problem</h3>
+      <p>비교 그룹이 8개로 적고, 집계 단위에 따라 상관계수가 -0.96과 -0.49로 달라졌습니다. 날짜 형식 혼재로 SQL 필터가 어긋나는 문제도 겪었습니다.</p>
+    </div>
+    <div>
+      <h3>Try</h3>
+      <p>p-value로 통계적 유의성을 검정하고, 상품군별 할인 시뮬레이션과 배송 방식·고객 세그먼트 변수를 추가해 분석을 확장하겠습니다.</p>
+    </div>
+  </div>
+
+</main>
+<footer><div class="wrap"><a href="../../index.html#project">← 프로젝트 목록으로</a></div></footer>
+</body>
+</html>
