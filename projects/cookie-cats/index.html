@@ -1,67 +1,200 @@
 <!DOCTYPE html>
 <html lang="ko">
-<head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Cookie Cats A/B 테스트 | 성원우</title>
-<meta name="description" content="Cookie Cats 게이트 위치 변경에 따른 1일·7일 리텐션 분석과 SRM, Z-test, 신뢰구간 검증">
-<link rel="stylesheet" href="../../assets/style.css">
-</head>
-<body>
-<header class="dhead"><div class="wrap">
-<a class="back" href="../../index.html#project">← 프로젝트 목록</a>
-<h1>🎮 Cookie Cats A/B 테스트 — 사용자 리텐션 분석</h1>
-<div class="tags"><span class="tag">Python</span><span class="tag">Pandas</span><span class="tag">SciPy</span><span class="tag">statsmodels</span><span class="tag">A/B 테스트</span></div>
-<div class="kpis">
-<div class="kpi"><b>90,189명</b><span>전체 실험 사용자</span></div>
-<div class="kpi"><b>−0.59%p</b><span>1일 리텐션 차이</span></div>
-<div class="kpi"><b>−0.82%p</b><span>7일 리텐션 차이</span></div>
-<div class="kpi"><b>0.00155</b><span>7일 리텐션 p-value</span></div>
-</div></div></header>
-<main class="wrap page">
-<div class="callout"><b>📝 프로젝트 요약</b><ul>
-<li><strong>목표</strong>: 모바일 퍼즐 게임의 첫 게이트를 레벨 30에서 40으로 옮겼을 때 리텐션이 개선되는지 분석</li>
-<li><strong>결과</strong>: Gate 40의 7일 리텐션은 Gate 30보다 0.82%p 낮았고, 비율 Z-test에서 유의한 차이가 관측됨(p=0.00155)</li>
-<li><strong>주의</strong>: 실제 목표 배정 비율이 알려져 있지 않아 50:50 가정하의 SRM 결과만으로 실험 오류나 인과 효과를 확정할 수 없음</li>
-<li><strong>역할</strong>(1인 프로젝트): 데이터 품질 검증, 리텐션 집계, SRM·Z-test·신뢰구간 분석, 시각화, 의사결정 제안</li>
-<li><a href="https://github.com/SWONWOO/Cookie_cats_AB_testing" target="_blank" rel="noopener">GitHub에서 코드와 상세 README 보기 ↗</a></li>
-</ul></div>
-<h2>1. 문제 정의</h2>
-<p>공개된 Cookie Cats A/B 테스트 데이터로 게이트 위치 변경과 사용자 재방문 사이의 관계를 분석했습니다. 7일 리텐션을 핵심 분석 지표, 1일 리텐션을 보조 지표로 설정했으며, 두 그룹의 차이는 Gate 40 − Gate 30으로 정의했습니다.</p>
-<table><tr><th>항목</th><th>분석 기준</th></tr>
-<tr><td>대조군</td><td>Gate 30</td></tr><tr><td>실험군</td><td>Gate 40</td></tr>
-<tr><td>핵심 지표</td><td>7일 리텐션</td></tr><tr><td>보조 지표</td><td>1일 리텐션</td></tr>
-<tr><td>통계 검정</td><td>두 표본 비율 Z-test, Newcombe 95% 신뢰구간</td></tr></table>
-<h2>2. 데이터 및 실험 품질 점검</h2>
-<ul><li><strong>출처</strong>: <a href="https://www.kaggle.com/datasets/yufengsui/mobile-games-ab-testing" target="_blank" rel="noopener">Kaggle · Mobile Games: A/B Testing</a></li>
-<li><strong>데이터</strong>: 90,189명, 5개 컬럼(userid, version, sum_gamerounds, retention_1, retention_7)</li>
-<li><strong>품질</strong>: 결측치 0건, 중복 행 0건, 중복 사용자 ID 0건</li></ul>
-<h3>2-1. 그룹 배정 비율 및 SRM</h3>
-<table><tr><th>그룹</th><th class="n">사용자 수</th><th class="n">배정 비율</th></tr>
-<tr><td>Gate 30</td><td class="n">44,700</td><td class="n">49.56%</td></tr>
-<tr><td>Gate 40</td><td class="n">45,489</td><td class="n">50.44%</td></tr></table>
-<p>목표 배정 비율이 50:50이라고 <strong>가정</strong>한 카이제곱 적합도 검정에서 p=0.0086으로 나타났습니다. 하지만 공개 데이터에서 실제 목표 배정 비율은 확인되지 않으므로, 이 결과만으로 배정 오류를 단정하지 않았습니다.</p>
-<h2>3. 리텐션 분석 결과</h2>
-<table><tr><th>지표</th><th class="n">Gate 30</th><th class="n">Gate 40</th><th class="n">차이</th><th class="n">p-value</th></tr>
-<tr><td>1일 리텐션</td><td class="n">44.82%</td><td class="n">44.23%</td><td class="n neg">−0.59%p</td><td class="n">0.0744</td></tr>
-<tr><td>7일 리텐션</td><td class="n">19.02%</td><td class="n">18.20%</td><td class="n neg">−0.82%p</td><td class="n">0.00155</td></tr></table>
-<figure><img src="https://raw.githubusercontent.com/SWONWOO/Cookie_cats_AB_testing/main/images/retention_comparison.png" alt="Gate 30과 Gate 40의 1일 및 7일 리텐션 비교 그래프" loading="lazy"><figcaption>Gate 40 그룹에서 두 리텐션 지표 모두 낮게 관측됨</figcaption></figure>
-<h3>3-1. 통계 검정 및 신뢰구간</h3>
-<table><tr><th>지표</th><th>95% 신뢰구간 (Gate 40 − Gate 30)</th><th>해석</th></tr>
-<tr><td>1일 리텐션</td><td>[−1.2392, +0.0582]%p</td><td>0을 포함하므로 유의하지 않음</td></tr>
-<tr><td>7일 리텐션</td><td>[−1.3282, −0.3121]%p</td><td>0을 포함하지 않아 유의함</td></tr></table>
-<figure><img src="https://raw.githubusercontent.com/SWONWOO/Cookie_cats_AB_testing/main/images/retention_difference_ci.png" alt="Gate 40에서 Gate 30을 뺀 리텐션 차이의 95% 신뢰구간" loading="lazy"><figcaption>7일 리텐션 차이의 95% 신뢰구간은 0을 포함하지 않음</figcaption></figure>
-<p class="note">관측된 통계적 차이를 곧바로 인과적 효과로 해석할 수는 없습니다. 실제 목표 배정 비율과 실험 로깅의 신뢰성 검증이 필요합니다.</p>
-<h2>4. 제안 (Action Plan)</h2>
-<ul><li><strong>Gate 40 확대 적용 보류</strong>: 리텐션 개선 근거가 확인되지 않았으므로 확대 적용을 보류합니다.</li>
-<li><strong>배정 로직 검증</strong>: 실제 목표 배정 비율과 사용자 할당 방식을 확인하고 SRM을 재평가합니다.</li>
-<li><strong>로그 품질 확인</strong>: 이벤트 누락, 수집 기간, 사용자 제외 기준을 점검합니다.</li>
-<li><strong>재분석 또는 재실험</strong>: 실험 신뢰성을 확인한 뒤 의사결정에 반영합니다.</li></ul>
-<h2>5. 회고 (KPT)</h2>
-<div class="kpt">
-<div><h3>Keep</h3><p>데이터 품질과 그룹 배정 비율을 먼저 점검하고, p-value뿐 아니라 효과 크기와 신뢰구간까지 함께 제시했습니다.</p></div>
-<div><h3>Problem</h3><p>공개 데이터만으로는 실제 목표 배정 비율과 실험 로그 수집 방식을 확인할 수 없었습니다.</p></div>
-<div><h3>Try</h3><p>배정 정보 확인 후 SRM을 재검증하고, 플레이 라운드 분포 및 세그먼트별 차이를 추가 분석하겠습니다.</p></div>
-</div>
-</main><footer><div class="wrap"><a href="../../index.html#project">← 프로젝트 목록으로</a></div></footer>
-</body></html>
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>Cookie Cats A/B 테스트 | 성원우</title>
+    <meta name="description" content="Cookie Cats 게이트 위치 변경에 따른 1일·7일 리텐션 분석과 SRM, Z-test, 신뢰구간 검증">
+    <link rel="stylesheet" href="../../assets/style.css">
+  </head>
+  <body>
+    <header class="dhead">
+      <div class="wrap">
+        <a class="back" href="../../index.html#project">← 프로젝트 목록</a>
+        <h1>🎮 Cookie Cats A/B 테스트 — 사용자 리텐션 분석</h1>
+        <div class="tags">
+          <span class="tag">Python</span>
+          <span class="tag">Pandas</span>
+          <span class="tag">SciPy</span>
+          <span class="tag">statsmodels</span>
+          <span class="tag">A/B 테스트</span>
+        </div>
+        <div class="kpis">
+          <div class="kpi">
+            <b>90,189명</b>
+            <span>전체 실험 사용자</span>
+          </div>
+          <div class="kpi">
+            <b>−0.59%p</b>
+            <span>1일 리텐션 차이</span>
+          </div>
+          <div class="kpi">
+            <b>−0.82%p</b>
+            <span>7일 리텐션 차이</span>
+          </div>
+          <div class="kpi">
+            <b>0.00155</b>
+            <span>7일 리텐션 p-value</span>
+          </div>
+        </div>
+      </div>
+    </header>
+    <main class="wrap page">
+      <div class="callout">
+        <b>📝 프로젝트 요약</b>
+        <ul>
+          <li>
+            <strong>목표</strong>: 모바일 퍼즐 게임의 첫 게이트를 레벨 30에서 40으로 옮겼을 때 리텐션이 개선되는지 분석</li>
+            <li>
+              <strong>결과</strong>: Gate 40의 7일 리텐션은 Gate 30보다 0.82%p 낮았고, 비율 Z-test에서 유의한 차이가 관측됨(p=0.00155)</li>
+              <li>
+                <strong>주의</strong>: 실제 목표 배정 비율이 알려져 있지 않아 50:50 가정하의 SRM 결과만으로 실험 오류나 인과 효과를 확정할 수 없음</li>
+                <li>
+                  <strong>역할</strong>(1인 프로젝트): 데이터 품질 검증, 리텐션 집계, SRM·Z-test·신뢰구간 분석, 시각화, 의사결정 제안</li>
+                  <li>
+                    <a href="https://github.com/SWONWOO/Cookie_cats_AB_testing" target="_blank" rel="noopener">GitHub에서 코드와 상세 README 보기 ↗</a>
+                  </li>
+                </ul>
+              </div>
+              <h2>1. 문제 정의</h2>
+              <p>공개된 Cookie Cats A/B 테스트 데이터로 게이트 위치 변경과 사용자 재방문 사이의 관계를 분석했습니다. 7일 리텐션을 핵심 분석 지표, 1일 리텐션을 보조 지표로 설정했으며, 두 그룹의 차이는 Gate 40 − Gate 30으로 정의했습니다.</p>
+              <table>
+                <tr>
+                  <th>항목</th>
+                  <th>분석 기준</th>
+                </tr>
+                <tr>
+                  <td>대조군</td>
+                  <td>Gate 30</td>
+                </tr>
+                <tr>
+                  <td>실험군</td>
+                  <td>Gate 40</td>
+                </tr>
+                <tr>
+                  <td>핵심 지표</td>
+                  <td>7일 리텐션</td>
+                </tr>
+                <tr>
+                  <td>보조 지표</td>
+                  <td>1일 리텐션</td>
+                </tr>
+                <tr>
+                  <td>통계 검정</td>
+                  <td>두 표본 비율 Z-test, Newcombe 95% 신뢰구간</td>
+                </tr>
+              </table>
+              <h2>2. 데이터 및 실험 품질 점검</h2>
+              <ul>
+                <li>
+                  <strong>출처</strong>: <a href="https://www.kaggle.com/datasets/yufengsui/mobile-games-ab-testing" target="_blank" rel="noopener">Kaggle · Mobile Games: A/B Testing</a>
+                </li>
+                <li>
+                  <strong>데이터</strong>: 90,189명, 5개 컬럼(userid, version, sum_gamerounds, retention_1, retention_7)</li>
+                  <li>
+                    <strong>품질</strong>: 결측치 0건, 중복 행 0건, 중복 사용자 ID 0건</li>
+                  </ul>
+                  <h3>2-1. 그룹 배정 비율 및 SRM</h3>
+                  <table>
+                    <tr>
+                      <th>그룹</th>
+                      <th class="n">사용자 수</th>
+                      <th class="n">배정 비율</th>
+                    </tr>
+                    <tr>
+                      <td>Gate 30</td>
+                      <td class="n">44,700</td>
+                      <td class="n">49.56%</td>
+                    </tr>
+                    <tr>
+                      <td>Gate 40</td>
+                      <td class="n">45,489</td>
+                      <td class="n">50.44%</td>
+                    </tr>
+                  </table>
+                  <p>목표 배정 비율이 50:50이라고 <strong>가정</strong>한 카이제곱 적합도 검정에서 p=0.0086으로 나타났습니다. 하지만 공개 데이터에서 실제 목표 배정 비율은 확인되지 않으므로, 이 결과만으로 배정 오류를 단정하지 않았습니다.</p>
+                  <h2>3. 리텐션 분석 결과</h2>
+                  <table>
+                    <tr>
+                      <th>지표</th>
+                      <th class="n">Gate 30</th>
+                      <th class="n">Gate 40</th>
+                      <th class="n">차이</th>
+                      <th class="n">p-value</th>
+                    </tr>
+                    <tr>
+                      <td>1일 리텐션</td>
+                      <td class="n">44.82%</td>
+                      <td class="n">44.23%</td>
+                      <td class="n neg">−0.59%p</td>
+                      <td class="n">0.0744</td>
+                    </tr>
+                    <tr>
+                      <td>7일 리텐션</td>
+                      <td class="n">19.02%</td>
+                      <td class="n">18.20%</td>
+                      <td class="n neg">−0.82%p</td>
+                      <td class="n">0.00155</td>
+                    </tr>
+                  </table>
+                  <figure>
+                    <img src="https://raw.githubusercontent.com/SWONWOO/Cookie_cats_AB_testing/main/images/retention_comparison.png" alt="Gate 30과 Gate 40의 1일 및 7일 리텐션 비교 그래프" loading="lazy">
+                    <figcaption>Gate 40 그룹에서 두 리텐션 지표 모두 낮게 관측됨</figcaption>
+                  </figure>
+                  <h3>3-1. 통계 검정 및 신뢰구간</h3>
+                  <table>
+                    <tr>
+                      <th>지표</th>
+                      <th>95% 신뢰구간 (Gate 40 − Gate 30)</th>
+                      <th>해석</th>
+                    </tr>
+                    <tr>
+                      <td>1일 리텐션</td>
+                      <td>[−1.2392, +0.0582]%p</td>
+                      <td>0을 포함하므로 유의하지 않음</td>
+                    </tr>
+                    <tr>
+                      <td>7일 리텐션</td>
+                      <td>[−1.3282, −0.3121]%p</td>
+                      <td>0을 포함하지 않아 유의함</td>
+                    </tr>
+                  </table>
+                  <figure>
+                    <img src="https://raw.githubusercontent.com/SWONWOO/Cookie_cats_AB_testing/main/images/retention_difference_ci.png" alt="Gate 40에서 Gate 30을 뺀 리텐션 차이의 95% 신뢰구간" loading="lazy">
+                    <figcaption>7일 리텐션 차이의 95% 신뢰구간은 0을 포함하지 않음</figcaption>
+                  </figure>
+                  <p class="note">관측된 통계적 차이를 곧바로 인과적 효과로 해석할 수는 없습니다. 실제 목표 배정 비율과 실험 로깅의 신뢰성 검증이 필요합니다.</p>
+                  <h2>4. 제안 (Action Plan)</h2>
+                  <ul>
+                    <li>
+                      <strong>Gate 40 확대 적용 보류</strong>: 리텐션 개선 근거가 확인되지 않았으므로 확대 적용을 보류합니다.</li>
+                      <li>
+                        <strong>배정 로직 검증</strong>: 실제 목표 배정 비율과 사용자 할당 방식을 확인하고 SRM을 재평가합니다.</li>
+                        <li>
+                          <strong>로그 품질 확인</strong>: 이벤트 누락, 수집 기간, 사용자 제외 기준을 점검합니다.</li>
+                          <li>
+                            <strong>재분석 또는 재실험</strong>: 실험 신뢰성을 확인한 뒤 의사결정에 반영합니다.</li>
+                          </ul>
+                          <h2>5. 회고 (KPT)</h2>
+                          <div class="kpt">
+                            <div>
+                              <h3>Keep</h3>
+                              <p>데이터 품질과 그룹 배정 비율을 먼저 점검하고, p-value뿐 아니라 효과 크기와 신뢰구간까지 함께 제시했습니다.</p>
+                            </div>
+                            <div>
+                              <h3>Problem</h3>
+                              <p>공개 데이터만으로는 실제 목표 배정 비율과 실험 로그 수집 방식을 확인할 수 없었습니다.</p>
+                            </div>
+                            <div>
+                              <h3>Try</h3>
+                              <p>배정 정보 확인 후 SRM을 재검증하고, 플레이 라운드 분포 및 세그먼트별 차이를 추가 분석하겠습니다.</p>
+                            </div>
+                          </div>
+                        </main>
+                        <footer>
+                          <div class="wrap">
+                            <a href="../../index.html#project">← 프로젝트 목록으로</a>
+                          </div>
+                        </footer>
+                      </body>
+                    </html>
